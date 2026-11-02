@@ -23,6 +23,8 @@ DEPARTAMENTOS_SEMILLA = (
 )
 ADMIN_EMAIL_SEMILLA = "ana.torres@ecotech.example"
 ADMIN_USERNAME_SEMILLA = "admin"
+EMPLEADO_USERNAME_SEMILLA = "empleado"
+EMPLEADO_EMAIL_SEMILLA = "carla.mendez@ecotech.example"
 
 EMPLEADOS_SEMILLA = (
     {"nombre": "Ana Torres", "direccion": "Av. Los Robles 101", "telefono": "+56970000001", "email": "ana.torres@ecotech.example", "fecha": date(2024, 1, 15), "salario": 1450000, "departamento": "Desarrollo"},
@@ -135,16 +137,28 @@ def _cargar_registros(empleados, proyectos):
             existentes.add(registro)
 
 
-def _cargar_cuenta_admin(empleados):
+def _cargar_cuentas_prueba(empleados):
     empleado = empleados[ADMIN_EMAIL_SEMILLA]
-    if (
-        UsuarioDAO.buscar_por_nombre(ADMIN_USERNAME_SEMILLA) is None
-        and UsuarioDAO.buscar_por_empleado(empleado.id) is None
-    ):
+    cuenta = UsuarioDAO.buscar_por_nombre(ADMIN_USERNAME_SEMILLA)
+    if cuenta is None and UsuarioDAO.buscar_por_empleado(empleado.id) is None:
         registrar_usuario(
             empleado.id,
             ADMIN_USERNAME_SEMILLA,
             os.getenv("ECOTECH_ADMIN_PASSWORD", "admin123"),
+            rol="admin",
+        )
+    elif cuenta is not None and cuenta.rol != "admin":
+        UsuarioDAO.actualizar_rol(cuenta.id, "admin")
+    empleado = empleados[EMPLEADO_EMAIL_SEMILLA]
+    if (
+        UsuarioDAO.buscar_por_nombre(EMPLEADO_USERNAME_SEMILLA) is None
+        and UsuarioDAO.buscar_por_empleado(empleado.id) is None
+    ):
+        registrar_usuario(
+            empleado.id,
+            EMPLEADO_USERNAME_SEMILLA,
+            os.getenv("ECOTECH_EMPLEADO_PASSWORD", "empleado123"),
+            rol="empleado",
         )
 
 
@@ -155,7 +169,7 @@ def cargar_semilla() -> None:
     _asignar_gerentes(departamentos, empleados)
     proyectos = _cargar_proyectos()
     _cargar_registros(empleados, proyectos)
-    _cargar_cuenta_admin(empleados)
+    _cargar_cuentas_prueba(empleados)
     print(
         f"Semilla lista: {len(departamentos)} departamentos, "
         f"{len(empleados)} empleados, {len(proyectos)} proyectos."

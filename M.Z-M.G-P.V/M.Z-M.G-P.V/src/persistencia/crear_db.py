@@ -52,6 +52,8 @@ def crear_tablas():
                 nombre_usuario TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
                 empleado_id INTEGER NOT NULL UNIQUE,
+                rol TEXT NOT NULL DEFAULT 'empleado'
+                    CHECK (rol IN ('admin', 'empleado')),
                 FOREIGN KEY (empleado_id) REFERENCES empleado(id)
                     ON DELETE CASCADE
             )
@@ -106,6 +108,7 @@ def crear_tablas():
                 nombre_usuario VARCHAR(40) NOT NULL UNIQUE,
                 password_hash VARCHAR(255) NOT NULL,
                 empleado_id INT NOT NULL UNIQUE,
+                rol VARCHAR(10) NOT NULL DEFAULT 'empleado',
                 FOREIGN KEY (empleado_id) REFERENCES empleado(id)
                     ON DELETE CASCADE
             )
@@ -121,4 +124,11 @@ def crear_tablas():
             sql_usuario,
         ):
             cursor.execute(sql)
+        if obtener_motor() == "sqlite":
+            cursor.execute("PRAGMA table_info(usuario)")
+            columnas = {fila[1] for fila in cursor.fetchall()}
+            if "rol" not in columnas:
+                cursor.execute(
+                    "ALTER TABLE usuario ADD COLUMN rol TEXT NOT NULL DEFAULT 'empleado'"
+                )
         conexion.commit()

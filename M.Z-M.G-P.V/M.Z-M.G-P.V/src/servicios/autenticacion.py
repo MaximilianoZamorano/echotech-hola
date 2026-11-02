@@ -16,7 +16,7 @@ def crear_hash(clave):
     return bcrypt.hashpw(clave_bytes, bcrypt.gensalt()).decode("utf-8")
 
 
-def registrar_usuario(empleado_id, nombre, clave):
+def registrar_usuario(empleado_id, nombre, clave, rol="empleado"):
     nombre = Usuario.normalizar_usuario(nombre)
     if EmpleadoDAO.obtenerPorId(empleado_id) is None:
         raise ValueError("No existe el empleado seleccionado.")
@@ -25,7 +25,7 @@ def registrar_usuario(empleado_id, nombre, clave):
         or UsuarioDAO.buscar_por_empleado(empleado_id) is not None
     ):
         raise ValueError("No se pudo crear esa cuenta.")
-    usuario = Usuario(nombre, crear_hash(clave), empleado_id)
+    usuario = Usuario(nombre, crear_hash(clave), empleado_id, rol=rol)
     return UsuarioDAO.insertar(usuario)
 
 
@@ -46,4 +46,5 @@ def autenticar(nombre, clave):
         "id": cuenta.id,
         "empleado_id": cuenta.empleado_id,
         "nombre_usuario": cuenta.nombre_usuario,
+        "rol": cuenta.rol,
     }

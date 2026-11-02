@@ -3,6 +3,7 @@ from presentacion.menu_departamento import menu_departamento
 from presentacion.menu_empleado import menu_empleado
 from presentacion.menu_proyecto import menu_proyecto
 from presentacion.menu_registro_tiempo import menu_registro_tiempo
+from servicios.permisos import requiere_admin
 
 
 def mostrar_opciones_principales():
@@ -14,7 +15,9 @@ def mostrar_opciones_principales():
     print("0. Salir")
 
 
-def iniciar_menu_principal():
+def iniciar_menu_principal(usuario_actual=None):
+    if usuario_actual is not None:
+        requiere_admin(usuario_actual)
     acciones = {
         "1": menu_departamento,
         "2": menu_empleado,

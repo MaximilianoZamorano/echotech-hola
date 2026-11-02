@@ -10,10 +10,10 @@ class UsuarioDAO:
             cursor = conexion.cursor()
             cursor.execute(
                 f"""
-                INSERT INTO usuario (nombre_usuario, password_hash, empleado_id)
-                VALUES ({marca}, {marca}, {marca})
+                INSERT INTO usuario (nombre_usuario, password_hash, empleado_id, rol)
+                VALUES ({marca}, {marca}, {marca}, {marca})
                 """,
-                (usuario.nombre_usuario, usuario.password_hash, usuario.empleado_id),
+                (usuario.nombre_usuario, usuario.password_hash, usuario.empleado_id, usuario.rol),
             )
             usuario.id = cursor.lastrowid
             conexion.commit()
@@ -26,7 +26,7 @@ class UsuarioDAO:
             cursor = conexion.cursor()
             cursor.execute(
                 f"""
-                SELECT id, nombre_usuario, password_hash, empleado_id
+                SELECT id, nombre_usuario, password_hash, empleado_id, rol
                 FROM usuario
                 WHERE nombre_usuario = {marca}
                 """,
@@ -42,7 +42,7 @@ class UsuarioDAO:
             cursor = conexion.cursor()
             cursor.execute(
                 f"""
-                SELECT id, nombre_usuario, password_hash, empleado_id
+                SELECT id, nombre_usuario, password_hash, empleado_id, rol
                 FROM usuario
                 WHERE empleado_id = {marca}
                 """,
@@ -56,10 +56,24 @@ class UsuarioDAO:
         with conexion_segura() as conexion:
             cursor = conexion.cursor()
             cursor.execute(
-                "SELECT id, nombre_usuario, password_hash, empleado_id FROM usuario ORDER BY id"
+                "SELECT id, nombre_usuario, password_hash, empleado_id, rol FROM usuario ORDER BY id"
             )
             filas = cursor.fetchall()
         return [UsuarioDAO._fila_a_usuario(fila) for fila in filas]
+
+    @staticmethod
+    def actualizar_rol(id_usuario: int, rol: str) -> bool:
+        if rol not in Usuario.ROLES:
+            raise ValueError("El rol debe ser 'admin' o 'empleado'.")
+        marca = marcador_sql()
+        with conexion_segura() as conexion:
+            cursor = conexion.cursor()
+            cursor.execute(
+                f"UPDATE usuario SET rol = {marca} WHERE id = {marca}",
+                (rol, id_usuario),
+            )
+            conexion.commit()
+            return cursor.rowcount > 0
 
     @staticmethod
     def _fila_a_usuario(fila) -> Usuario:
@@ -68,4 +82,5 @@ class UsuarioDAO:
             nombre_usuario=fila[1],
             password_hash=fila[2],
             empleado_id=fila[3],
+            rol=fila[4],
         )
