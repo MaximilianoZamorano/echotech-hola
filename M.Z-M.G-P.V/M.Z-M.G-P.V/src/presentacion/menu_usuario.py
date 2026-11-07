@@ -1,6 +1,8 @@
 from getpass import getpass
+import sqlite3
 
 import requests
+import pymysql
 
 from dominio.usuario import Usuario
 from persistencia.empleado_dao import EmpleadoDAO
@@ -17,6 +19,7 @@ from servicios.autenticacion import autenticar, registrar_usuario
 from servicios.mi_cuenta import actualizar_mis_datos, obtener_mis_registros, obtener_mi_ficha
 from servicios.permisos import PermisoDenegado, requiere_admin
 from servicios.indicadores_api import extraer_indicador, obtener_datos
+from persistencia.indicador_dao import guardar_indicador
 
 
 def solicitar_registro(usuario_actual=None):
@@ -118,11 +121,15 @@ def consultar_indicador(usuario_actual):
         return
     try:
         indicador = extraer_indicador(obtener_datos())
+        guardar_indicador(indicador)
     except requests.exceptions.RequestException:
         print("No fue posible consultar la API del dolar. Verifique su conexion.")
         return
     except (KeyError, TypeError, ValueError) as error:
         print(f"La API devolvio datos invalidos: {error}")
+        return
+    except (sqlite3.Error, pymysql.MySQLError):
+        print("No fue posible almacenar el indicador consultado.")
         return
 
     print("\nIndicador observado del dolar")

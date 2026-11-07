@@ -9,12 +9,27 @@ proyectos y registros de tiempo. La implementación está organizada en capas:
 - `src/presentacion`: menús y validación de entradas.
 - `src/main.py`: inicialización de la base de datos y coordinación de los menús.
 
+## Propósito y cumplimiento de la ES3
+
+La aplicación integra información externa con la gestión interna de EcoTechSolutions:
+
+1. **Consumo de API:** consulta del dólar chileno mediante `requests`, procesamiento JSON
+   y selección del registro más reciente.
+2. **Seguridad:** inicio de sesión, contraseñas con `bcrypt`, validación de entradas,
+   permisos por rol y SQL parametrizado.
+3. **Errores externos:** timeout, reintentos, validación HTTP/JSON y mensajes seguros.
+4. **Uso crítico de IA:** fragmentos revisados, vulnerabilidades identificadas,
+   cambios técnicos aplicados y decisiones justificadas.
+
+Solo los usuarios autenticados pueden consultar la API y los resultados válidos se
+guardan en la tabla `indicador_consulta`.
+
 ## Ejecución local con SQLite
 
 Se requiere Python 3.10 o superior.
 
 ```powershell
-python -m pip install -r requirement.txt
+python -m pip install -r requirements.txt
 python src/main.py
 ```
 
@@ -77,7 +92,7 @@ sesión válida permite:
 Para preparar la base y probar el recorrido completo:
 
 ```powershell
-python -m pip install -r requirement.txt
+python -m pip install -r requirements.txt
 python src/semilla_bd.py
 python src/main.py
 ```
@@ -121,3 +136,52 @@ python -m unittest discover -s tests -v
 
 La revisión técnica final y la explicación de los aportes individuales y del uso
 de herramientas de IA deben ser realizadas y justificadas por el equipo.
+
+## API económica utilizada
+
+El indicador se obtiene desde:
+
+`https://mindicador.cl/api/dolar`
+
+El programa solicita una respuesta JSON con timeout, comprueba el código HTTP y valida:
+
+- que el código sea `dolar`;
+- que exista una serie de registros;
+- que fechas y valores tengan formatos utilizables;
+- que los valores sean numéricos, finitos y mayores que cero; y
+- que se conserve el registro de fecha más reciente.
+
+No se requieren llaves API. No agregue tokens, usuarios ni contraseñas al código.
+Las consultas externas deben ejecutarse solo desde una cuenta autenticada.
+
+## Manejo seguro de errores
+
+- Las solicitudes HTTP realizan hasta tres intentos con timeout.
+- Se procesan errores de conexión HTTP, JSON y persistencia mediante `try/except`.
+- `raise_for_status()` controla respuestas HTTP diferentes de 2xx.
+- Los mensajes muestran una explicación breve, sin URL con credenciales, trazas
+  internas ni detalles de infraestructura.
+- Los DAO usan transacciones con rollback y cierre de conexiones.
+
+## Persistencia del indicador
+
+Cada consulta válida guarda código, moneda base, moneda destino, fecha reportada,
+valor observado y fecha local de consulta en `indicador_consulta`. Los datos
+externos quedan separados de empleados, proyectos y registros operativos.
+
+## Revisión crítica y apoyo de IA
+
+Se permite IA como apoyo, pero no sustituye la comprensión ni la revisión del equipo.
+En la versión entregada se evaluaron propuestas relacionadas con:
+
+- timeout, reintentos y validación HTTP antes de procesar JSON;
+- rechazo de booleanos, valores no finitos y números negativos;
+- autenticación con `bcrypt` en vez de texto plano;
+- protección contra SQL por concatenación mediante consultas parametrizadas;
+- rollback, cierre de conexiones y mensajes que no revelan detalles internos; y
+- descarte de claves o credenciales colocadas directamente en código.
+
+Los fragmentos aceptados fueron probados y ajustados al diseño. Las propuestas
+basadas en `except Exception` amplio, credenciales fijas o respuestas HTTP no
+verificadas fueron descartadas. Cada integrante debe poder explicar e justificar
+estas decisiones técnicas.

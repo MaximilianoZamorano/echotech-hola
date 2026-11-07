@@ -118,16 +118,10 @@ def extraer_indicador(datos, moneda_destino="CLP"):
 def calcular_cambio_dolar(cantidad_usd, moneda_destino="CLP"):
     """Une las funciones para descargar, validar y calcular la conversión monetaria."""
     try:
- 
         datos_api = obtener_datos()
-
-       
         info_cambio = extraer_indicador(datos_api, moneda_destino)
-
         precio_dolar = info_cambio["valor"]
         total_convertido = cantidad_usd * precio_dolar
-
-      
         print(f"\n--- Conversión USD a {moneda_destino} (ExchangeRate-API) ---")
         print(f"Valor actual de 1 USD: {precio_dolar:,.2f} {moneda_destino}")
         print(f"Última actualización API: {info_cambio['fecha']}")
@@ -138,7 +132,7 @@ def calcular_cambio_dolar(cantidad_usd, moneda_destino="CLP"):
 
         return total_convertido
 
-    except Exception as e:
+    except (requests.exceptions.RequestException, KeyError, TypeError, ValueError) as e:
         print(f"Error al realizar el cálculo del cambio: {e}")
         return None
 

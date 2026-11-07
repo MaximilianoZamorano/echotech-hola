@@ -58,6 +58,18 @@ def crear_tablas():
                     ON DELETE CASCADE
             )
         """
+        sql_indicador = """
+            CREATE TABLE IF NOT EXISTS indicador_consulta (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                codigo TEXT NOT NULL,
+                codigo_base TEXT NOT NULL,
+                unidad_medida TEXT NOT NULL,
+                moneda_destino TEXT NOT NULL,
+                fecha_indicador TEXT NOT NULL,
+                valor REAL NOT NULL CHECK (valor > 0),
+                consultado_en TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """
     else:
         sql_departamento = """
             CREATE TABLE IF NOT EXISTS departamento (
@@ -113,6 +125,18 @@ def crear_tablas():
                     ON DELETE CASCADE
             )
         """
+        sql_indicador = """
+            CREATE TABLE IF NOT EXISTS indicador_consulta (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                codigo VARCHAR(20) NOT NULL,
+                codigo_base VARCHAR(20) NOT NULL,
+                unidad_medida VARCHAR(20) NOT NULL,
+                moneda_destino VARCHAR(20) NOT NULL,
+                fecha_indicador VARCHAR(40) NOT NULL,
+                valor FLOAT NOT NULL,
+                consultado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """
 
     with conexion_segura() as conexion:
         cursor = conexion.cursor()
@@ -122,6 +146,7 @@ def crear_tablas():
             sql_empleado,
             sql_registro_tiempo,
             sql_usuario,
+            sql_indicador,
         ):
             cursor.execute(sql)
         if obtener_motor() == "sqlite":
